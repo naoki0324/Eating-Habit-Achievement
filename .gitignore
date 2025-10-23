@@ -1,0 +1,17 @@
+# 依存関係／パッケージ
+node_modules/
+
+# ビルド成果物
+dist/
+build/
+
+# 環境変数・機密情報
+.env
+.env.local
+.env.*.local
+
+# OS／エディタ固有のファイル
+.DS_Store
+*.log
+
+# その他（必要に応じて）
