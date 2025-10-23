@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  font-family: "Plus Jakarta Sans", "Yu Gothic", "Hiragino Kaku Gothic ProN", sans-serif;
+  background-color: #f6f4f1;
+  color: #1f2933;
+}
+
+* {
+  box-sizing: border-box;
+}
