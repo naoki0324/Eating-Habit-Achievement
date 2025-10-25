@@ -1,7 +1,7 @@
 import { FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { useAppStore } from "../../lib/store/appStore";
+import { useAppStore } from "../../services/store/appStore";
 
 const RegisterPage = () => {
   const register = useAppStore((state) => state.register);
@@ -31,7 +31,13 @@ const RegisterPage = () => {
       navigate("/", { replace: true });
     } catch (error_) {
       console.error(error_);
-      setError("登録処理でエラーが発生しました。");
+      
+      // Supabase設定エラーの場合
+      if (error_ instanceof Error && error_.message.includes("データベースが設定されていません")) {
+        setError("システムエラー: データベースが設定されていません。管理者にお問い合わせください。");
+      } else {
+        setError("登録処理でエラーが発生しました。");
+      }
     } finally {
       setSubmitting(false);
     }

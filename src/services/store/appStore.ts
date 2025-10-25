@@ -3,7 +3,7 @@ import type {
   ChecklistSection,
   LogLevel,
   UserProfile,
-} from "../../shared/types/domain";
+} from "../../types/domain";
 import {
   authenticateUser,
   registerUser,
@@ -18,7 +18,7 @@ import {
   upsertDailyChecklist,
 } from "../api/dailyChecklist";
 import { appendLog } from "../api/logger";
-import { isSupabaseConfigured } from "../api/supabaseClient";
+import { isSupabaseConfigured } from "../supabase/supabaseClient";
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
@@ -91,6 +91,7 @@ interface AppState {
   saveTemplate: (sections: ChecklistSection[]) => Promise<void>;
   ensureDailyChecklist: (date: string) => Promise<ChecklistSection[]>;
   toggleChecklistItem: (payload: TogglePayload) => Promise<void>;
+  updateTodayChecklistFromTemplate: () => Promise<void>;
   recordLog: (action: string, message: string, level?: LogLevel) => Promise<void>;
 }
 
@@ -192,7 +193,11 @@ export const useAppStore = create<AppState>((set, get) => ({
     try {
       const next = await saveTemplateSections(user.id, sections);
       set({ template: next });
-      await get().recordLog("template:save", "テンプレートを更新しました");
+      
+      // 今日のチェックリストをテンプレートに合わせて更新
+      await get().updateTodayChecklistFromTemplate();
+      
+      await get().recordLog("template:save", "テンプレートを更新し、今日のチェックリストに反映しました");
     } finally {
       set({ templateLoading: false });
     }
@@ -286,6 +291,79 @@ export const useAppStore = create<AppState>((set, get) => ({
     await get().recordLog(
       "checklist:toggle",
       `${date} / ${sectionId} / ${itemId} のチェック状態を切り替えました`,
+    );
+  },
+
+  updateTodayChecklistFromTemplate: async () => {
+    const user = get().user;
+    if (!user) return;
+
+    const today = todayISO();
+    const template = get().template;
+    const existingToday = get().dailyRecords[today];
+
+    if (!existingToday) {
+      // 今日のチェックリストが存在しない場合は、通常の生成処理を実行
+      await get().ensureDailyChecklist(today);
+      return;
+    }
+
+    // 既存のチェック状態を保持しながら、テンプレートの変更を反映
+    const updatedSections = template.map((templateSection) => {
+      const existingSection = existingToday.find(s => s.id === templateSection.id);
+      
+      if (!existingSection) {
+        // 新しいセクションの場合、すべて未チェックで追加
+        return {
+          ...templateSection,
+          items: templateSection.items.map(item => ({ ...item, checked: false })),
+        };
+      }
+
+      // 既存セクションの場合、アイテムの変更を反映
+      const updatedItems = templateSection.items.map((templateItem) => {
+        const existingItem = existingSection.items.find(i => i.id === templateItem.id);
+        
+        if (!existingItem) {
+          // 新しいアイテムの場合、未チェックで追加
+          return { ...templateItem, checked: false };
+        }
+
+        // 既存アイテムの場合、チェック状態を保持しつつラベルを更新
+        return {
+          ...templateItem,
+          checked: existingItem.checked,
+        };
+      });
+
+      return {
+        ...templateSection,
+        items: updatedItems,
+      };
+    });
+
+    // 削除されたセクション/アイテムを除外
+    const finalSections = updatedSections.filter(section => 
+      template.some(templateSection => templateSection.id === section.id)
+    );
+
+    // データベースとストアを更新
+    await upsertDailyChecklist({
+      userId: user.id,
+      recordDate: today,
+      sections: finalSections,
+    });
+
+    set((state) => ({
+      dailyRecords: {
+        ...state.dailyRecords,
+        [today]: finalSections,
+      },
+    }));
+
+    await get().recordLog(
+      "checklist:sync",
+      `今日のチェックリストをテンプレートに合わせて更新しました`,
     );
   },
 

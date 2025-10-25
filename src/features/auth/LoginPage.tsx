@@ -1,7 +1,8 @@
 import { FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAppStore } from "../../lib/store/appStore";
+import { useAppStore } from "../../services/store/appStore";
 import { motion } from "framer-motion";
+import { ErrorPopup } from "../../components/ui/ErrorPopup";
 
 const LoginPage = () => {
   const login = useAppStore((state) => state.login);
@@ -9,27 +10,75 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [showErrorPopup, setShowErrorPopup] = useState(false);
+  const [errorType, setErrorType] = useState<"invalid_credentials" | "network_error" | "validation_error">("validation_error");
   const navigate = useNavigate();
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
+    setShowErrorPopup(false);
 
     if (!loginId || !password) {
       setError("IDとパスワードを入力してください");
+      setErrorType("validation_error");
       return;
     }
 
     setSubmitting(true);
-    const success = await login(loginId, password);
-    setSubmitting(false);
+    try {
+      const success = await login(loginId, password);
+      
+      if (!success) {
+        // 認証失敗の場合、詳細なエラーポップアップを表示
+        setErrorType("invalid_credentials");
+        setShowErrorPopup(true);
+        return;
+      }
 
-    if (!success) {
-      setError("認証に失敗しました。入力内容を確認してください。");
-      return;
+      navigate("/", { replace: true });
+    } catch (error) {
+      console.error("Login error:", error);
+      
+      // Supabase設定エラーの場合
+      if (error instanceof Error && error.message.includes("データベースが設定されていません")) {
+        setErrorType("network_error");
+        setShowErrorPopup(true);
+      } else {
+        setErrorType("network_error");
+        setShowErrorPopup(true);
+      }
+    } finally {
+      setSubmitting(false);
     }
+  };
 
-    navigate("/", { replace: true });
+  const handleRegisterClick = () => {
+    setShowErrorPopup(false);
+    navigate("/register", { replace: true });
+  };
+
+  const getErrorMessage = () => {
+    switch (errorType) {
+      case "invalid_credentials":
+        return {
+          title: "ログインに失敗しました",
+          message: "入力されたIDまたはパスワードが正しくありません。\n\nもしくは、まだアカウントが登録されていない可能性があります。",
+          showRegisterPrompt: true,
+        };
+      case "network_error":
+        return {
+          title: "システムエラーが発生しました",
+          message: "データベース接続に問題があります。\n\n管理者にお問い合わせいただくか、しばらく時間をおいてから再度お試しください。",
+          showRegisterPrompt: false,
+        };
+      default:
+        return {
+          title: "入力エラー",
+          message: "入力内容を確認してください。",
+          showRegisterPrompt: false,
+        };
+    }
   };
 
   return (
@@ -89,6 +138,16 @@ const LoginPage = () => {
           </Link>
         </div>
       </motion.form>
+
+      {/* エラーポップアップ */}
+      <ErrorPopup
+        isOpen={showErrorPopup}
+        onClose={() => setShowErrorPopup(false)}
+        title={getErrorMessage().title}
+        message={getErrorMessage().message}
+        showRegisterPrompt={getErrorMessage().showRegisterPrompt}
+        onRegisterClick={handleRegisterClick}
+      />
     </div>
   );
 };

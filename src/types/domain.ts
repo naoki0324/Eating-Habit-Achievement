@@ -24,6 +24,11 @@ export interface UserProfile {
   id: string;
   goalDays: number;
   createdAt: string;
+  email: string | null;
+  displayName: string | null;
+  streakDays: number;
+  longestStreak: number;
+  totalChecklists: number;
 }
 
 export interface TemplateSeedSection {

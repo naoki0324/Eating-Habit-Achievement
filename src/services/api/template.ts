@@ -1,10 +1,10 @@
-import { getSupabaseClient, isSupabaseConfigured } from "./supabaseClient";
+import { getSupabaseClient, isSupabaseConfigured } from "../supabase/supabaseClient";
 import type {
   ChecklistTemplateRecord,
   ChecklistTemplateItemRecord,
 } from "./types";
-import type { ChecklistSection, ChecklistItem, TemplateSeedSection } from "../../shared/types/domain";
-import { DEFAULT_TEMPLATE_SEED } from "../../shared/types/domain";
+import type { ChecklistSection, ChecklistItem, TemplateSeedSection } from "../../types/domain";
+import { DEFAULT_TEMPLATE_SEED } from "../../types/domain";
 
 const generateId = () =>
   typeof crypto !== "undefined" && "randomUUID" in crypto

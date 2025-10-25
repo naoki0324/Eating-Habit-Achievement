@@ -1,6 +1,6 @@
-import { getSupabaseClient, isSupabaseConfigured } from "./supabaseClient";
+import { getSupabaseClient, isSupabaseConfigured } from "../supabase/supabaseClient";
 import type { DailyChecklistRecord } from "./types";
-import type { ChecklistSection } from "../../shared/types/domain";
+import type { ChecklistSection } from "../../types/domain";
 
 const serializeSections = (sections: ChecklistSection[]): DailyChecklistRecord["sections"] => {
   return sections.map((section) => ({

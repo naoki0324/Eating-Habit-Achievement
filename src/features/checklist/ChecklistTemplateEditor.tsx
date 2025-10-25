@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { PlusCircle, Trash2, Save, RotateCcw, Loader2 } from "lucide-react";
-import { useAppStore } from "../../lib/store/appStore";
-import type { ChecklistSection } from "../../shared/types/domain";
+import { useAppStore } from "../../services/store/appStore";
+import type { ChecklistSection } from "../../types/domain";
 
 const generateId = () =>
   typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -129,6 +129,8 @@ export const ChecklistTemplateEditor = () => {
     setSaving(true);
     try {
       await saveTemplate(draft);
+      // 保存成功のフィードバック
+      console.log("テンプレートが保存され、今日のチェックリストに反映されました");
     } finally {
       setSaving(false);
     }
@@ -140,7 +142,7 @@ export const ChecklistTemplateEditor = () => {
         <div>
           <h2 className="text-lg font-semibold text-slate-800">テンプレート設定</h2>
           <p className="text-sm text-slate-500 mt-1">
-            編集後に「保存」すると、指定日以降のチェックリストに反映されます。
+            編集後に「保存」すると、今日のチェックリストに即座に反映されます。
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">

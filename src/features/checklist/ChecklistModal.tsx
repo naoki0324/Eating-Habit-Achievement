@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { X, CheckCircle2 } from "lucide-react";
-import { useAppStore } from "../../lib/store/appStore";
+import { useAppStore } from "../../services/store/appStore";
 
 interface ChecklistModalProps {
   open: boolean;
@@ -13,12 +13,36 @@ export const ChecklistModal = ({ open, onClose }: ChecklistModalProps) => {
   const ensureChecklist = useAppStore((state) => state.ensureDailyChecklist);
   const toggleItem = useAppStore((state) => state.toggleChecklistItem);
   const setSelectedDate = useAppStore((state) => state.setSelectedDate);
+  const template = useAppStore((state) => state.template);
 
   useEffect(() => {
     if (open) {
       ensureChecklist(selectedDate);
     }
   }, [open, ensureChecklist, selectedDate]);
+
+  // テンプレートが変更された場合、今日のチェックリストを更新
+  useEffect(() => {
+    if (open && selectedDate === new Date().toISOString().slice(0, 10)) {
+      const todaySections = useAppStore.getState().dailyRecords[selectedDate];
+      if (todaySections && template.length > 0) {
+        // テンプレートと今日のチェックリストの構造が異なる場合、更新を実行
+        const needsUpdate = template.some(templateSection => {
+          const existingSection = todaySections.find(s => s.id === templateSection.id);
+          if (!existingSection) return true;
+          
+          return templateSection.items.some(templateItem => {
+            const existingItem = existingSection.items.find(i => i.id === templateItem.id);
+            return !existingItem || existingItem.label !== templateItem.label;
+          });
+        });
+
+        if (needsUpdate) {
+          useAppStore.getState().updateTodayChecklistFromTemplate();
+        }
+      }
+    }
+  }, [open, selectedDate, template]);
 
   if (!open) return null;
 

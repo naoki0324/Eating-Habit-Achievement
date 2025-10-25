@@ -1,6 +1,6 @@
-import { getSupabaseClient, isSupabaseConfigured } from "./supabaseClient";
+import { getSupabaseClient, isSupabaseConfigured } from "../supabase/supabaseClient";
 import type { SystemLogRecord } from "./types";
-import type { LogLevel } from "../../shared/types/domain";
+import type { LogLevel } from "../../types/domain";
 
 export const appendLog = async (payload: {
   userId?: string | null;

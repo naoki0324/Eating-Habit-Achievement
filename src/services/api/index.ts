@@ -4,3 +4,4 @@ export * from "./template";
 export * from "./dailyChecklist";
 export * from "./logger";
 export * from "./types";
+export * from "./streak";
