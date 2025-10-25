@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useMemo } from "react";
-import { useAppStore, calculateContinuousDays } from "../../lib/store/appStore";
+import { useAppStore, calculateContinuousDays } from "../../services/store/appStore";
 import { format } from "date-fns";
 
 export const TopHero = () => {

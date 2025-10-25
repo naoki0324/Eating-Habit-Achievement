@@ -5,8 +5,8 @@ import OptionsPage from "./features/checklist/OptionsPage";
 import LoginPage from "./features/auth/LoginPage";
 import RegisterPage from "./features/auth/RegisterPage";
 import { ChecklistModal } from "./features/checklist";
-import { useAppStore } from "./lib/store/appStore";
-import "./shared/styles/index.css";
+import { useAppStore } from "./services/store/appStore";
+import "./styles/index.css";
 
 const layoutBackground = "linear-gradient(135deg, #f6f4f1 0%, #f0f7f4 50%, #ffffff 100%)";
 

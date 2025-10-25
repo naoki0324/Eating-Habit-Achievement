@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { ChecklistModal } from "../checklist";
 import { TopHero } from "./TopHero";
 import { DragonEvolution } from "../dragon/DragonEvolution";
-import { useAppStore, calculateContinuousDays } from "../../lib/store/appStore";
+import { useAppStore, calculateContinuousDays } from "../../services/store/appStore";
 
 const HomePage = () => {
   const dailyRecords = useAppStore((state) => state.dailyRecords);

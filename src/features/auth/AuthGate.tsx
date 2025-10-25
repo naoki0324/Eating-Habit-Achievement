@@ -1,7 +1,7 @@
 import { FormEvent, useState } from "react";
 import { motion } from "framer-motion";
 import { Lock } from "lucide-react";
-import { useAppStore } from "../../lib/store/appStore";
+import { useAppStore } from "../../services/store/appStore";
 
 const hashPassword = async (password: string) => {
   const encoder = new TextEncoder();
